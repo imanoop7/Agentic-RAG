@@ -36,17 +36,24 @@ def process_sources(urls=None, pdf_files=None):
                 except Exception as e:
                     print(f"Error loading URL {url}: {e}")
     
-    # Handle PDFs
+     # Handle PDFs
     if pdf_files:
-        for pdf in pdf_files:
+        for pdf_file in pdf_files:
             try:
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
-                    tmp.write(pdf.read())
-                    loader = PyPDFLoader(tmp.name)
-                    docs_list.extend(loader.load())
-            except Exception as e:
-                print(f"Error loading PDF: {e}")
+                # Get the file path from Gradio's file object
+                pdf_path = pdf_file.name if hasattr(pdf_file, 'name') else str(pdf_file)
                 
+                # Load PDF directly using PyPDFLoader
+                loader = PyPDFLoader(pdf_path)
+                pdf_docs = loader.load()
+                docs_list.extend(pdf_docs)
+                
+            except Exception as e:
+                print(f"Error loading PDF {pdf_file}: {str(e)}")
+                
+    if not docs_list:
+        print("Warning: No documents were successfully loaded")
+        
     return docs_list
 
 def grade_documents(state) -> Literal["generate", "rewrite"]:
@@ -165,8 +172,8 @@ def process_query(urls, pdf_files, query):
     return response
 
 def create_interface():
-    with gr.Blocks(title="Document Q&A Assistant") as interface:
-        gr.Markdown("# Document Q&A Assistant")
+    with gr.Blocks(title="Agentic RAG using Langgraph") as interface:
+        gr.Markdown("# Agentic RAG using Langgraph") 
         gr.Markdown("*You can provide URLs, PDF files, or both*")
         
         with gr.Tab("Upload Documents"):
